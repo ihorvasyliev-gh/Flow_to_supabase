@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Login } from './pages/Login'
+import { SignUp } from './pages/SignUp'
 import { Dashboard } from './pages/Dashboard'
 import { Users } from './pages/Users'
 import { Courses } from './pages/Courses'
@@ -43,6 +44,7 @@ function App() {
         <Router>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
             <Route
               path="/dashboard"
               element={

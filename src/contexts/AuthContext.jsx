@@ -97,6 +97,14 @@ export const AuthProvider = ({ children }) => {
     return { data, error }
   }
 
+  const signUp = async (email, password) => {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    })
+    return { data, error }
+  }
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut()
     return { error }
@@ -108,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     signIn,
     signInWithGoogle,
+    signUp,
     signOut,
   }
 

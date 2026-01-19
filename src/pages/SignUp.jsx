@@ -1,32 +1,47 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { Mail, Lock } from 'lucide-react'
+import { Mail, Lock, UserPlus } from 'lucide-react'
 
-export const Login = () => {
+export const SignUp = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { signIn } = useAuth()
+  const [success, setSuccess] = useState(false)
+  const { signUp } = useAuth()
   const navigate = useNavigate()
-  
-  console.log('Login component rendering')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess(false)
+
+    if (password !== confirmPassword) {
+      setError('Пароли не совпадают')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Пароль должен содержать минимум 6 символов')
+      return
+    }
+
     setLoading(true)
 
     try {
-      const { error } = await signIn(email, password)
+      const { error } = await signUp(email, password)
       if (error) {
         setError(error.message)
       } else {
-        navigate('/dashboard')
+        setSuccess(true)
+        setTimeout(() => {
+          navigate('/login')
+        }, 2000)
       }
     } catch (err) {
-      setError('Произошла ошибка при входе')
+      setError('Произошла ошибка при регистрации')
     } finally {
       setLoading(false)
     }
@@ -37,16 +52,21 @@ export const Login = () => {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Вход в систему
+            Регистрация
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Управление регистрациями на курсы
+            Создайте новый аккаунт
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
               {error}
+            </div>
+          )}
+          {success && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+              Регистрация успешна! Перенаправление на страницу входа...
             </div>
           )}
           <div className="rounded-md shadow-sm -space-y-px">
@@ -83,12 +103,33 @@ export const Login = () => {
                   id="password"
                   name="password"
                   type="password"
-                  autoComplete="current-password"
+                  autoComplete="new-password"
                   required
-                  className="appearance-none rounded-none relative block w-full px-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-none relative block w-full px-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                   placeholder="Пароль"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="confirmPassword" className="sr-only">
+                Подтвердите пароль
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  className="appearance-none rounded-none relative block w-full px-10 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                  placeholder="Подтвердите пароль"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
             </div>
@@ -97,21 +138,30 @@ export const Login = () => {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || success}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Вход...' : 'Войти'}
+              {loading ? (
+                'Регистрация...'
+              ) : success ? (
+                'Успешно!'
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-5 w-5" />
+                  Зарегистрироваться
+                </>
+              )}
             </button>
           </div>
 
           <div className="text-center">
             <p className="text-sm text-gray-600">
-              Нет аккаунта?{' '}
+              Уже есть аккаунт?{' '}
               <Link
-                to="/signup"
+                to="/login"
                 className="font-medium text-indigo-600 hover:text-indigo-500"
               >
-                Зарегистрироваться
+                Войти
               </Link>
             </p>
           </div>

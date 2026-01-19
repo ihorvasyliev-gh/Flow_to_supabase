@@ -15,6 +15,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null)
   const [session, setSession] = useState(null)
   const [loading, setLoading] = useState(true)
+  
+  console.log('AuthProvider rendering, loading:', loading, 'user:', user)
 
   useEffect(() => {
     let mounted = true

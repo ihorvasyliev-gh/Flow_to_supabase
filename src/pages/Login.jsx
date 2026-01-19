@@ -10,6 +10,8 @@ export const Login = () => {
   const [loading, setLoading] = useState(false)
   const { signIn } = useAuth()
   const navigate = useNavigate()
+  
+  console.log('Login component rendering')
 
   const handleSubmit = async (e) => {
     e.preventDefault()

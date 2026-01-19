@@ -18,42 +18,55 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     let mounted = true
+    let subscription = null
+    
+    // Set a shorter timeout to prevent long loading
     const timeoutId = setTimeout(() => {
       if (mounted) {
         console.warn('Auth initialization timeout, setting loading to false')
         setLoading(false)
       }
-    }, 5000) // 5 second timeout
+    }, 3000) // 3 second timeout
 
-    // Get initial session
-    supabase.auth.getSession()
-      .then(({ data: { session }, error }) => {
+    try {
+      // Get initial session
+      supabase.auth.getSession()
+        .then(({ data: { session }, error }) => {
+          if (!mounted) return
+          if (error) {
+            console.error('Error getting session:', error)
+          }
+          setSession(session)
+          setUser(session?.user ?? null)
+          setLoading(false)
+          clearTimeout(timeoutId)
+        })
+        .catch((error) => {
+          if (!mounted) return
+          console.error('Error initializing auth:', error)
+          setLoading(false)
+          clearTimeout(timeoutId)
+        })
+
+      // Listen for auth changes
+      const {
+        data: { subscription: authSubscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
         if (!mounted) return
-        if (error) {
-          console.error('Error getting session:', error)
-        }
         setSession(session)
         setUser(session?.user ?? null)
         setLoading(false)
         clearTimeout(timeoutId)
       })
-      .catch((error) => {
-        if (!mounted) return
-        console.error('Error initializing auth:', error)
+      
+      subscription = authSubscription
+    } catch (error) {
+      console.error('Error setting up auth:', error)
+      if (mounted) {
         setLoading(false)
         clearTimeout(timeoutId)
-      })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!mounted) return
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-      clearTimeout(timeoutId)
-    })
+      }
+    }
 
     return () => {
       mounted = false

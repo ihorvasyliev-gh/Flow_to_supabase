@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { Login } from './pages/Login'
@@ -7,6 +7,23 @@ import { Dashboard } from './pages/Dashboard'
 import { Users } from './pages/Users'
 import { Courses } from './pages/Courses'
 import { CourseParticipants } from './pages/CourseParticipants'
+
+const RootRedirect = () => {
+  const { user, loading } = useAuth()
+  
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Загрузка...</p>
+        </div>
+      </div>
+    )
+  }
+  
+  return <Navigate to={user ? "/dashboard" : "/login"} replace />
+}
 
 function App() {
   return (
@@ -47,7 +64,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/" element={<RootRedirect />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

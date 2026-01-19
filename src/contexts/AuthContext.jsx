@@ -17,23 +17,51 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    let mounted = true
+    const timeoutId = setTimeout(() => {
+      if (mounted) {
+        console.warn('Auth initialization timeout, setting loading to false')
+        setLoading(false)
+      }
+    }, 5000) // 5 second timeout
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    supabase.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (!mounted) return
+        if (error) {
+          console.error('Error getting session:', error)
+        }
+        setSession(session)
+        setUser(session?.user ?? null)
+        setLoading(false)
+        clearTimeout(timeoutId)
+      })
+      .catch((error) => {
+        if (!mounted) return
+        console.error('Error initializing auth:', error)
+        setLoading(false)
+        clearTimeout(timeoutId)
+      })
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
+      clearTimeout(timeoutId)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      mounted = false
+      clearTimeout(timeoutId)
+      if (subscription) {
+        subscription.unsubscribe()
+      }
+    }
   }, [])
 
   const signIn = async (email, password) => {
